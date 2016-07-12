@@ -43,14 +43,12 @@ avrgirlStk500v2.prototype._setupComms = function() {
   if (this.commType === 'libusb')
     this.open();
   this.device.setUpInterface(function(error) {
-    if (!error) {
-      setImmediate(emitReady, self);
-    }
+    setImmediate(emitReady, self, error);
   });
 }
 
-function emitReady(self) {
-  self.emit('ready');
+function emitReady(self, error) {
+  self.emit('ready', error);
 }
 
 avrgirlStk500v2.prototype.open = function() {

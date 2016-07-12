@@ -192,7 +192,7 @@ avrgirlStk500v2.prototype.loadPage = function (memType, data, callback) {
   });
 };
 
-avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback) {
+avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback, notify) {
   var self = this;
   var options = this.options.chip;
   var pageAddress = 0;
@@ -218,6 +218,9 @@ avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback) {
     return callback(new Error('could not write ' + memType + ': please supply either a hex buffer or a valid path to a hex file.'));
   }
 
+  var total = hex.length;
+  var pageStart = pageAddress;
+
   async.whilst(
     function testEndOfFile() {
       // case for data being flashed being less than one page in size
@@ -233,6 +236,8 @@ avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback) {
           self.loadAddress(memType, useAddress, done);
         },
         function writeToPage(done) {
+	  if (notify)
+	    notify({ written: (pageAddress - pageStart), total: total });
           data = hex.slice(pageAddress, (hex.length > pageSize ? (pageAddress + pageSize) : hex.length - 1))
           self.loadPage(memType, data, done);
         },
@@ -305,10 +310,13 @@ avrgirlStk500v2.prototype.eraseChip = function (callback) {
   });
 };
 
-avrgirlStk500v2.prototype.writeFlash = function (hex, callback) {
+avrgirlStk500v2.prototype.writeFlash = function (hex, callback, notify) {
   // optional convenience method
   this.writeMem('flash', hex, function(error) {
     return callback(error);
+  }, function(notification) {
+    if (notify)
+      return notify(notification);
   });
 };
 

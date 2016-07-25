@@ -198,6 +198,12 @@ avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback, notify) {
   var pageSize = options[memType].pageSize;
   var addressOffset = options[memType].addressOffset;
   var data;
+  var offset = 0;
+
+  if (typeof hex === 'object') {
+    offset = hex.offset;
+    hex = hex.hex;
+  }
 
   if (typeof hex === 'string') {
     try {
@@ -230,13 +236,13 @@ avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback, notify) {
     function programPage(pagedone) {
       async.series([
         function loadAddress(done) {
-          useAddress = pageAddress >> addressOffset;
+          useAddress = (pageAddress + offset) >> addressOffset;
           self.loadAddress(memType, useAddress, done);
         },
         function writeToPage(done) {
 	  if (notify)
 	    notify({ written: (pageAddress - pageStart), total: total });
-          data = hex.slice(pageAddress, (hex.length > pageSize ? (pageAddress + pageSize) : hex.length - 1))
+          data = hex.slice(pageAddress, (hex.length > pageSize ? (pageAddress + pageSize) : hex.length))
           self.loadPage(memType, data, done);
         },
         function calcNextPage(done) {

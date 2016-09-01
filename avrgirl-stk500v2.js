@@ -224,6 +224,7 @@ avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback, notify) {
 
   var total = hex.length;
   var pageStart = pageAddress;
+  var addressLoaded = false;
 
   async.whilst(
     function testEndOfFile() {
@@ -236,8 +237,11 @@ avrgirlStk500v2.prototype.writeMem = function (memType, hex, callback, notify) {
     function programPage(pagedone) {
       async.series([
         function loadAddress(done) {
+          if (addressLoaded)
+            return done();
           useAddress = (pageAddress + offset) >> addressOffset;
           self.loadAddress(memType, useAddress, done);
+          addressLoaded = true;
         },
         function writeToPage(done) {
 	  if (notify)
